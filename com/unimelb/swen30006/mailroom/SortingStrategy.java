@@ -24,7 +24,12 @@ public interface SortingStrategy {
      * @return the identifier of the assigned storage box
      * @throws MailOverflowException if there are no spaces remaining for new boxes
      */
-     String assignStorage(MailItem item, MailStorage storage) throws MailOverflowException;
+     String assignStorage(MailItem item, MailStorage storage) throws MailOverflowException {
+    	 
+    	 /** My way of going about it right now is to, have data structure that will 
+    	  * store the state of the packages in the mail room,
+    	  */
+     }
 
 }
 

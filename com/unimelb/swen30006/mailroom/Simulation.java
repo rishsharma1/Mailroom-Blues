@@ -1,4 +1,4 @@
-/* SWEN30006 Software Modelling and Design 
+/* SWEN30006 Software Modelling and Design
  * Project 1 - Mailroom Blues
  * Author: Mathew Blair <mathew.blair@unimelb.edu.au>
  */
@@ -42,10 +42,11 @@ public class Simulation {
 
         // Extract whether to print detailed runs or not
         boolean printDetailed = (args.length>0 && args[0].equals("detailed"));
-
+        // Extract whether to print random runs or not
+        boolean printRandom = !(args.length>0 && args[1].equals("random"));
         // Run the simulation with the appropriate arguments
         runSimulation(MIN_FLOOR, MAX_FLOOR, NUM_MAIL, MAX_BOXES, MAX_MAIL_UNITS, NUM_BOTS,
-                MAIL_ROOM_LEVEL, true, selectionStrategy, deliveryStrategy, sortStrategy, printDetailed, NUM_RUNS);
+                MAIL_ROOM_LEVEL, printRandom, selectionStrategy, deliveryStrategy, sortStrategy, printDetailed, NUM_RUNS);
     }
 
     /**

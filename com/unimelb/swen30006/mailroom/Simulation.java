@@ -18,7 +18,7 @@ public class Simulation {
     // Constants for our simulation mail generator
     private static final int MIN_FLOOR = -1;
     private static final int MAX_FLOOR = 20;
-    private static final int NUM_MAIL = 200;
+    private static final int NUM_MAIL = 1000;
 
     // Constants for our mail storage unit
     private static final int MAX_BOXES = 5;
@@ -29,24 +29,67 @@ public class Simulation {
 
     // The number of delivery bots
     private static final int NUM_BOTS = 1;
+    
+    // Constants for large building
+    private static final int MIN_FLOOR_LARGE = 1;
+    private static final int MAX_FLOOR_LARGE = 200;
+    private static final int MAX_BOXES_LARGE = 50;
+    private static final int MAX_MAIL_UNITS_LARGE = 20;
+    private static final int MAIL_ROOM_LEVEL_LARGE = 2;
+    private static final int NUM_BOTS_LARGE = 20;
+    private static final String LARGE_BUILDING = "large_building";
+    
+    // Constants for medium building 
+    private static final int MIN_FLOOR_MEDIUM = 1;
+    private static final int MAX_FLOOR_MEDIUM = 50;
+    private static final int MAX_BOXES_MEDIUM = 10;
+    private static final int MAX_MAIL_UNITS_MEDIUM = 30;
+    private static final int MAIL_ROOM_LEVEL_MEDIUM = 20;
+    private static final int NUM_BOTS_MEDIUM = 10;
+    private static final String MEDIUM_BUILDING = "medium_building";
+    
+    // Constants for small building 
+    private static final int MIN_FLOOR_SMALL = 1;
+    private static final int MAX_FLOOR_SMALL = 10;
+    private static final int MAX_BOXES_SMALL = 30;
+    private static final int MAX_MAIL_UNITS_SMALL = 40;
+    private static final int MAIL_ROOM_LEVEL_SMALL = 10;
+    private static final int NUM_BOTS_SMALL = 1;
+    private static final String SMALL_BUILDING = "small_building";
+    
 
     // The default number of simulations
     private static final int NUM_RUNS = 10;
+    private static int minFloor;
+    private static int maxFloor;
+    private static int maxBoxes;
+    private static int maxUnits;
+    private static int numBots;
+    private static int mailRoomLevel;
 
     public static void main(String args[]) {
 
         // Create the appropriate strategies
-        SortingStrategy sortStrategy = new SimpleSortingStrategy();
+        SortingStrategy sortStrategy = new SortingMethodOne();
         SelectionStrategy selectionStrategy = new SimpleSelectionStrategy();
         DeliveryStrategy deliveryStrategy = new SimpleDeliveryStrategy();
-
+        
+        boolean pridictable;
+        String simulationType = args[0];
+        
+        simulationScenario(simulationType);
         // Extract whether to print detailed runs or not
-        boolean printDetailed = (args.length>0 && args[0].equals("detailed"));
+        boolean printDetailed = (args.length>0 && args[1].equals("detailed"));
         // Extract whether to print random runs or not
-        boolean printRandom = !(args.length>0 && args[1].equals("random"));
+        try {
+        	pridictable = !(args.length>0 && args[1].equals("random"));
+        }
+        catch(ArrayIndexOutOfBoundsException e) {
+        	pridictable = true;
+        }
         // Run the simulation with the appropriate arguments
         runSimulation(MIN_FLOOR, MAX_FLOOR, NUM_MAIL, MAX_BOXES, MAX_MAIL_UNITS, NUM_BOTS,
-                MAIL_ROOM_LEVEL, printRandom, selectionStrategy, deliveryStrategy, sortStrategy, printDetailed, NUM_RUNS);
+                MAIL_ROOM_LEVEL, pridictable, selectionStrategy, deliveryStrategy, sortStrategy, printDetailed, NUM_RUNS);
     }
 
     /**
@@ -162,5 +205,36 @@ public class Simulation {
         System.out.println("Average Num Packages: " + numMail/(double)numDeliveries);
         System.out.println("");
 
+    }
+    
+    private static void simulationScenario(String simulationType) {
+    	
+    	switch(simulationType) {
+    			
+    		case LARGE_BUILDING:
+    			minFloor = MIN_FLOOR_LARGE;
+    			maxFloor = MAX_FLOOR_LARGE;
+    			maxBoxes = MAX_BOXES_LARGE;
+    			maxUnits = MAX_MAIL_UNITS_LARGE;
+    			numBots = NUM_BOTS_LARGE;
+    			mailRoomLevel = MAIL_ROOM_LEVEL_LARGE;
+    		
+    		case MEDIUM_BUILDING:
+    			minFloor = MIN_FLOOR_MEDIUM;
+    			maxFloor = MAX_FLOOR_MEDIUM;
+    			maxBoxes = MAX_BOXES_MEDIUM;
+    			maxUnits = MAX_MAIL_UNITS_MEDIUM;
+    			numBots = NUM_BOTS_MEDIUM;
+    			mailRoomLevel = MAIL_ROOM_LEVEL_MEDIUM;
+    		
+    		case SMALL_BUILDING:
+    			minFloor = MIN_FLOOR_SMALL;
+    			maxFloor = MAX_FLOOR_SMALL;
+    			maxBoxes = MAX_BOXES_SMALL;
+    			maxUnits = MAX_MAIL_UNITS_SMALL;
+    			numBots = NUM_BOTS_SMALL;
+    			mailRoomLevel = MAIL_ROOM_LEVEL_SMALL;
+    		
+    	}
     }
 }

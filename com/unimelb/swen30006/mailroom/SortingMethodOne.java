@@ -1,8 +1,9 @@
 package com.unimelb.swen30006.mailroom;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.UUID;
+import java.util.List;
 
 import com.unimelb.swen30006.mailroom.exceptions.DuplicateIdentifierException;
 import com.unimelb.swen30006.mailroom.exceptions.MailOverflowException;
@@ -13,64 +14,187 @@ public class SortingMethodOne implements SortingStrategy {
 
 	//Keeps track of what is stored where, The key is the floor, and the value
 	//is a StorageBox
-	private HashMap<Integer, ArrayList<String>> storageTracker;
-
+	private HashMap<String, HashMap<Integer, Integer>> storageTracker;
+	private Integer ID;
 	public SortingMethodOne() {
-		storageTracker = new HashMap<Integer, ArrayList<String>>();
+		storageTracker = new HashMap<String, HashMap<Integer, Integer>>();
+		ID = 1;
 	}
 
 
 	@Override
 	public String assignStorage(MailItem item, MailStorage storage) throws MailOverflowException {
 
-		//Grab the floor the item needs to be delivered to
-		int itemFloor = item.floor;
+		
+		int deliveryFloor = item.floor;
+		int maxCountOfFloorItem = -1;
+		String boxID = null;
 
-
-		if(storageTracker.containsKey(itemFloor)) {
+		//Finds the box with the highest distribution of items from current mail item's
+		//floor 
+		
+		for(String id: storageTracker.keySet() ) {
 			
-			//an array list of boxes that belong to a certain floor 
-			ArrayList<String> boxIdentifiers = storageTracker.get(itemFloor);
-			StorageBox box;
+			
+			
+			
+			if(storageTracker.get(id).containsKey(deliveryFloor)) {
 				
-			for(int i=0;i<boxIdentifiers.size();i++) {
+				int countOfFloorItem = storageTracker.get(id).get(deliveryFloor);
 				
-					
+				if(countOfFloorItem > maxCountOfFloorItem) {
+					boxID = id;
+					maxCountOfFloorItem = countOfFloorItem;
+				}
+			}
+		}
+		
+		StorageBox maxBox;
+		if(boxID != null) {
+
+			try {
+				maxBox = storage.retrieveBox(boxID);
+
+				if(maxBox.canHold(item)) {
+					//increase count of of item in box by 1 in storage tracker
+					storageTracker.get(boxID).put(deliveryFloor,
+					storageTracker.get(boxID).get(deliveryFloor)+1);
+					return boxID;
+				}
+			} catch (UnknownIdentifierException e1) {
+				e1.printStackTrace();
+				
+				System.out.println("Box ID: "+boxID);
+
+
+			}
+		}
+		
+
+
+		
+		// let's try creating a new box 
+		try {
+			
+			if(!storage.isFull()) {
+				String newBoxID = ID.toString();
+				storage.createBox(newBoxID);
+				ID++;
+				HashMap<Integer,Integer> newBox = new HashMap<Integer,Integer>();
+				newBox.put(deliveryFloor, 1);
+				storageTracker.put(newBoxID, newBox);
+				return newBoxID;
+			}
+			
+		} catch (DuplicateIdentifierException e) {
+			System.out.println(e);
+			System.exit(0);
+		}
+		
+		//String bestBox = null;
+		//int distance = -1;
+		
+		/*
+		for(String id: storageTracker.keySet()) {
+			
+			//int maxFloor = getMaxFloor(storageTracker.get(id));
+			//int minFloor = getMinFloor(storageTracker.get(id));
+			//System.out.println("minFloor: "+minFloor+" maxFloor: "+minFloor+ " Delivery: "+deliveryFloor);
+
+			
+			if(deliveryFloor <= maxFloor && deliveryFloor >= minFloor) {
+				storageTracker.get(id).put(deliveryFloor, 1);
+				return id;
+			}
+			
+			int closestInBox = closestFloor(storageTracker.get(id),deliveryFloor);
+			
+			if(distance == -1 && bestBox == null) {
+				
+				//bestBox = getAvailableBox(storage,item);
+				closestInBox = closestFloor(storageTracker.get(bestBox),deliveryFloor);
+				distance = Math.abs(closestInBox-deliveryFloor);
+
+			} else
 				try {
-					box = storage.retrieveBox(boxIdentifiers.get(i));
-					
-					if(box.canHold(item)) {
-						return boxIdentifiers.get(i);
+					if(distance > (closestInBox-deliveryFloor) && storage.retrieveBox(id).canHold(item)) {
+						distance = Math.abs(closestInBox-deliveryFloor);
+						bestBox = id;
 					}
 				} catch (UnknownIdentifierException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-
-					
-			}
-				
-
-				
-
+			
 		}
 		
-		//There is not a box for a floor, let's create one 
-		String id = UUID.randomUUID().toString();
-		try {
-			storage.createBox(id);
-			ArrayList<String> boxIdentifiers = new ArrayList<String>();
-			boxIdentifiers.add(id);
-			storageTracker.put(itemFloor, boxIdentifiers);
-			return id;
-		} catch (DuplicateIdentifierException e) {
-            System.out.println(e);
-            System.exit(0);
-		}
-		
+		return bestBox;
+		*/
 		return null;
-		
-
 	}
+
+
+	public HashMap<String, HashMap<Integer, Integer>> getStorageTracker() {
+		return storageTracker;
+	}
+
+
+	public void setID(Integer iD) {
+		ID = iD; 
+	}
+	
+	private int getMinFloor(HashMap<Integer,Integer> box) {
+		
+		List<Integer> keyList = new ArrayList<Integer>(box.keySet());
+		Collections.sort(keyList);
+		
+		return keyList.get(0);
+		
+		
+	}
+	
+	private int getMaxFloor(HashMap<Integer,Integer> box) {
+		
+		List<Integer> keyList = new ArrayList<Integer>(box.keySet());
+		Collections.sort(keyList);
+		Collections.reverse(keyList);
+		
+		return keyList.get(0);
+		
+		
+	}
+	private int closestFloor(HashMap<Integer,Integer> box, int mailFloor) {
+		
+		int closestFloorDistance = -1;
+		int closestFloor = 0;
+		for(int floor: box.keySet()) {
+			
+			if(closestFloorDistance == -1 && closestFloor == 0 ) {
+				closestFloorDistance = Math.abs(mailFloor-floor);
+				closestFloor = floor;
+			}
+			else if(closestFloorDistance > Math.abs(mailFloor-floor)) {
+				closestFloorDistance = mailFloor-floor;
+				closestFloor = floor;
+			}
+			
+		}
+		return closestFloor;
+	}
+	/*
+	private String getAvailableBox(MailStorage storage, MailItem item) throws MailOverflowException {
+		
+        StorageBox.Summary[] available = storage.retrieveSummaries();
+        for(StorageBox.Summary summary : available){
+            if(summary.remainingUnits >= item.size){
+                return summary.identifier;
+            }
+            
+        }
+        throw new MailOverflow
+	}
+	*/
+	
+
 
 }

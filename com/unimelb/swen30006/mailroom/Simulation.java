@@ -29,7 +29,7 @@ public class Simulation {
 
     // The number of delivery bots
     private static final int NUM_BOTS = 1;
-    
+
     // Constants for large building
     private static final int MIN_FLOOR_LARGE = 1;
     private static final int MAX_FLOOR_LARGE = 200;
@@ -38,8 +38,8 @@ public class Simulation {
     private static final int MAIL_ROOM_LEVEL_LARGE = 2;
     private static final int NUM_BOTS_LARGE = 20;
     private static final String LARGE_BUILDING = "large_building";
-    
-    // Constants for medium building 
+
+    // Constants for medium building
     private static final int MIN_FLOOR_MEDIUM = 1;
     private static final int MAX_FLOOR_MEDIUM = 50;
     private static final int MAX_BOXES_MEDIUM = 10;
@@ -47,8 +47,8 @@ public class Simulation {
     private static final int MAIL_ROOM_LEVEL_MEDIUM = 20;
     private static final int NUM_BOTS_MEDIUM = 10;
     private static final String MEDIUM_BUILDING = "medium_building";
-    
-    // Constants for small building 
+
+    // Constants for small building
     private static final int MIN_FLOOR_SMALL = 1;
     private static final int MAX_FLOOR_SMALL = 10;
     private static final int MAX_BOXES_SMALL = 30;
@@ -56,7 +56,7 @@ public class Simulation {
     private static final int MAIL_ROOM_LEVEL_SMALL = 10;
     private static final int NUM_BOTS_SMALL = 1;
     private static final String SMALL_BUILDING = "small_building";
-    
+
 
     // The default number of simulations
     private static final int NUM_RUNS = 10;
@@ -69,27 +69,53 @@ public class Simulation {
 
     public static void main(String args[]) {
 
-        // Create the appropriate strategies
-        SortingStrategy sortStrategy = new SortingMethodOne();
-        SelectionStrategy selectionStrategy = new SimpleSelectionStrategy();
-        DeliveryStrategy deliveryStrategy = new SimpleDeliveryStrategy();
-        
-        boolean pridictable;
         String simulationType = args[0];
-        
+        System.out.println(simulationType);
+
         simulationScenario(simulationType);
+        //System.out.println(maxFloor);
+        // Create the appropriate strategies
+        SortingStrategy sortStrategy = new SortingMethodTwo();
+        SelectionStrategy selectionStrategy = new SelectionMethod(sortStrategy);
+        DeliveryStrategy deliveryStrategy = new DeliveryMethod(selectionStrategy);
+
+        //SortingStrategy sortStrategy = new SimpleSortingStrategy();
+        //SelectionStrategy selectionStrategy = new SimpleSelectionStrategy();
+        //DeliveryStrategy deliveryStrategy = new SimpleDeliveryStrategy();
+
+        boolean pridictable;
+    	boolean printDetailed;
+
+
         // Extract whether to print detailed runs or not
-        boolean printDetailed = (args.length>0 && args[1].equals("detailed"));
         // Extract whether to print random runs or not
         try {
         	pridictable = !(args.length>0 && args[1].equals("random"));
+
         }
         catch(ArrayIndexOutOfBoundsException e) {
         	pridictable = true;
         }
+        try {
+
+        	if(pridictable) {
+                printDetailed = (args.length>0 && args[1].equals("detailed"));
+
+        	}
+        	else {
+        		printDetailed = (args.length>0 && args[2].equals("detailed"));
+
+        	}
+
+        }
+        catch(ArrayIndexOutOfBoundsException e) {
+        	printDetailed = false;
+        }
+
+
         // Run the simulation with the appropriate arguments
-        runSimulation(MIN_FLOOR, MAX_FLOOR, NUM_MAIL, MAX_BOXES, MAX_MAIL_UNITS, NUM_BOTS,
-                MAIL_ROOM_LEVEL, pridictable, selectionStrategy, deliveryStrategy, sortStrategy, printDetailed, NUM_RUNS);
+        runSimulation(minFloor, maxFloor, NUM_MAIL, maxBoxes, maxUnits, numBots,
+                mailRoomLevel, pridictable, selectionStrategy, deliveryStrategy, sortStrategy, printDetailed, NUM_RUNS);
     }
 
     /**
@@ -128,7 +154,12 @@ public class Simulation {
         }
 
         // Run the required number of simulations
-        for(int i=0; i<numRuns; i++){
+        for(int i=0; i<NUM_RUNS; i++){
+
+        	sortingStrategy = new SortingMethodTwo();
+            selectionStrategy = new SelectionMethod(sortingStrategy);
+            deliveryStrategy = new DeliveryMethod(selectionStrategy);
+
             // Setup Mail Generator
             MailItem.MailPriority[] priorities = MailItem.MailPriority.values();
             MailItem.MailType[] types = MailItem.MailType.values();
@@ -206,35 +237,38 @@ public class Simulation {
         System.out.println("");
 
     }
-    
+
     private static void simulationScenario(String simulationType) {
-    	
-    	switch(simulationType) {
-    			
-    		case LARGE_BUILDING:
+
+
+    		if (simulationType.equals(LARGE_BUILDING)) {
     			minFloor = MIN_FLOOR_LARGE;
     			maxFloor = MAX_FLOOR_LARGE;
     			maxBoxes = MAX_BOXES_LARGE;
     			maxUnits = MAX_MAIL_UNITS_LARGE;
     			numBots = NUM_BOTS_LARGE;
     			mailRoomLevel = MAIL_ROOM_LEVEL_LARGE;
-    		
-    		case MEDIUM_BUILDING:
+    		}
+
+    		else if(simulationType.equals(MEDIUM_BUILDING)) {
     			minFloor = MIN_FLOOR_MEDIUM;
     			maxFloor = MAX_FLOOR_MEDIUM;
     			maxBoxes = MAX_BOXES_MEDIUM;
     			maxUnits = MAX_MAIL_UNITS_MEDIUM;
     			numBots = NUM_BOTS_MEDIUM;
     			mailRoomLevel = MAIL_ROOM_LEVEL_MEDIUM;
-    		
-    		case SMALL_BUILDING:
+    		}
+
+    		else if(simulationType.equals(SMALL_BUILDING)) {
+
     			minFloor = MIN_FLOOR_SMALL;
     			maxFloor = MAX_FLOOR_SMALL;
     			maxBoxes = MAX_BOXES_SMALL;
     			maxUnits = MAX_MAIL_UNITS_SMALL;
     			numBots = NUM_BOTS_SMALL;
     			mailRoomLevel = MAIL_ROOM_LEVEL_SMALL;
-    		
-    	}
+    		}
+
+
     }
 }

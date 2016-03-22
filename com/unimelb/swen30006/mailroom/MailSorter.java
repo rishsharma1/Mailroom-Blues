@@ -1,3 +1,4 @@
+
 /* SWEN30006 Software Modelling and Design
  * Project 1 - Mailroom Blues
  * Author: Mathew Blair <mathew.blair@unimelb.edu.au>
@@ -23,6 +24,8 @@ public class MailSorter implements Stepable {
     private final SortingStrategy strategy;
     /** Flag for whether we have finished or not */
     private boolean hasFinished = false;
+    /** The next mail item to deliver **/
+    private MailItem nextItem;
 
     /**
      * Instantiate a MailSorter with the given parameters. Does not begin sort from source
@@ -40,14 +43,19 @@ public class MailSorter implements Stepable {
     @Override
     public void step() {
         if (source.hasNextMail()) {
+            // Continue while we have mail
+
             try {
-                // Continue while we have mail
-                MailItem nextMail = source.nextItem();
+                if(this.nextItem==null){
+                    this.nextItem = source.nextItem();
+                }
                 // Retrieve identifier
-                String identifier = strategy.assignStorage(nextMail, this.storage);
+                String identifier = strategy.assignStorage(this.nextItem, this.storage);
                 // Assign Storage
                 StorageBox box = this.storage.retrieveBox(identifier);
-                box.addItem(nextMail);
+                box.addItem(this.nextItem);
+                // Set this to null if no exceptions thrown
+                this.nextItem = null;
             } catch (MailOverflowException e) {
                 // Strategy has decided storage has no room for mail item, wait for deliver.
                 System.out.println(e);

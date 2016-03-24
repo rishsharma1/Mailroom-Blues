@@ -10,7 +10,7 @@ public class SelectionMethod implements SelectionStrategy {
 
 	
 	public SelectionMethod(SortingStrategy sortStrategy, int maxBoxes) {
-		this.sortMethodOne = (SortingMethodTwo) sortStrategy;
+		this.sortMethodOne = (SortingMethodOne) sortStrategy;
 		this.maxBoxes = maxBoxes;
 		deliverying = false;
 		currentBoxStats = new HashMap<Integer,Integer>();
@@ -18,7 +18,7 @@ public class SelectionMethod implements SelectionStrategy {
 	
 	//current id of the box that is going to be delivered 
 	private String currentBoxID;
-	public SortingMethodTwo sortMethodOne;
+	public SortingMethodOne sortMethodOne;
 	private HashMap<Integer,Integer> currentBoxStats;
 	private  static int maxBoxes;
 	private boolean deliverying;
@@ -27,6 +27,8 @@ public class SelectionMethod implements SelectionStrategy {
 	@Override
 	public String selectNextDelivery(Summary[] summaries) throws NoBoxReadyException {
 		
+		System.out.println("Summary Length: "+summaries.length);
+		System.out.println("storageTracker: "+sortMethodOne.getStorageTracker().size());
 		if(sortMethodOne.maxItems < 1) {
 			
 			if(summaries.length == 0) {
@@ -37,7 +39,7 @@ public class SelectionMethod implements SelectionStrategy {
 			}
 		}
 
-		
+
 		if((summaries.length == maxBoxes || deliverying)) {
 			
 			if(summaries.length == 1) {
@@ -53,6 +55,7 @@ public class SelectionMethod implements SelectionStrategy {
 				if(summary.remainingUnits < maxBoxSummary.remainingUnits) {
 					maxBoxSummary = summary;
 				}
+				
 				
 			}
 
@@ -72,7 +75,12 @@ public class SelectionMethod implements SelectionStrategy {
 	
 			
 		}
-//		System.out.println("Throwing the no box ready exception");
+		//System.out.println("Throwing the no box ready exception");
+		
+		/*for(StorageBox.Summary summary: summaries) {
+			System.out.println(summary);
+		}
+		*/
 		throw new NoBoxReadyException();
 		
 	}

@@ -1,10 +1,13 @@
 package com.unimelb.swen30006.mailroom;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
+import com.unimelb.swen30006.mailroom.StorageBox.Summary;
 import com.unimelb.swen30006.mailroom.exceptions.DuplicateIdentifierException;
 import com.unimelb.swen30006.mailroom.exceptions.MailOverflowException;
 import com.unimelb.swen30006.mailroom.exceptions.UnknownIdentifierException;
@@ -14,11 +17,22 @@ public class SortingMethodOne implements SortingStrategy {
 
 	//Keeps track of what is stored where, The key is the floor, and the value
 	//is a StorageBox
+	static private Comparator<StorageBox.Summary>  boxesWithClosestFloors;
+
 	private HashMap<String, HashMap<Integer, Integer>> storageTracker;
 	private Integer ID;
+	public int maxItems;
+	private int deliveryFloor;
+	
+
+
+	
+
 	public SortingMethodOne() {
 		storageTracker = new HashMap<String, HashMap<Integer, Integer>>();
 		ID = 1;
+		maxItems = 1000;
+
 	}
 
 
@@ -26,60 +40,65 @@ public class SortingMethodOne implements SortingStrategy {
 	public String assignStorage(MailItem item, MailStorage storage) throws MailOverflowException {
 
 		
-		int deliveryFloor = item.floor;
-		int maxCountOfFloorItem = -1;
-		String boxID = null;
-
-		//Finds the box with the highest distribution of items from current mail item's
-		//floor 
+		deliveryFloor = item.floor;
+		String bestBox;
+		System.out.println(storage.isFull());
+		System.out.println(item);
 		
-		for(String id: storageTracker.keySet() ) {
+		boxesWithClosestFloors = new Comparator<StorageBox.Summary>() {
+
+			@Override
+			public int compare(Summary o1, Summary o2) {
+				return Integer.compare(smallestDifference(storageTracker.get(o1.identifier)), smallestDifference(storageTracker.get(o2.identifier)));
+			}
 			
+		};
+		
+		StorageBox.Summary[] available = storage.retrieveSummaries();
+		Arrays.sort(available,boxesWithClosestFloors);
+		try {
 			
-			
-			
-			if(storageTracker.get(id).containsKey(deliveryFloor)) {
+			for(StorageBox.Summary summary: available) {
 				
-				int countOfFloorItem = storageTracker.get(id).get(deliveryFloor);
+
+				bestBox = summary.identifier;
+				HashMap<Integer,Integer> summaryBox = storageTracker.get(bestBox);
+				StorageBox box = storage.retrieveBox(bestBox);
+
 				
-				if(countOfFloorItem > maxCountOfFloorItem) {
-					boxID = id;
-					maxCountOfFloorItem = countOfFloorItem;
+				if(box.canHold(item))  {
+					
+				
+					maxItems--;
+					if(summaryBox.containsKey(deliveryFloor)) {
+						summaryBox.put(deliveryFloor, summaryBox.get(deliveryFloor)+1);
+					}
+					else {
+						summaryBox.put(deliveryFloor, 1);
+					}
+					return bestBox;
 				}
 			}
+
+			
+		} catch(UnknownIdentifierException e) {
+			
+			 System.out.println(e);
+             System.out.println("FATAL: Sort Strategy failed. Abort");
+             System.exit(0);
 		}
-		
-		StorageBox maxBox;
-		if(boxID != null) {
-
-			try {
-				maxBox = storage.retrieveBox(boxID);
-
-				if(maxBox.canHold(item)) {
-					//increase count of of item in box by 1 in storage tracker
-					storageTracker.get(boxID).put(deliveryFloor,
-					storageTracker.get(boxID).get(deliveryFloor)+1);
-					return boxID;
-				}
-			} catch (UnknownIdentifierException e1) {
-				e1.printStackTrace();
-				
-				System.out.println("Box ID: "+boxID);
 
 
-			}
-		}
-		
 
-
-		
 		// let's try creating a new box 
 		try {
 			
 			if(!storage.isFull()) {
+
 				String newBoxID = ID.toString();
 				storage.createBox(newBoxID);
 				ID++;
+				maxItems--;
 				HashMap<Integer,Integer> newBox = new HashMap<Integer,Integer>();
 				newBox.put(deliveryFloor, 1);
 				storageTracker.put(newBoxID, newBox);
@@ -90,47 +109,8 @@ public class SortingMethodOne implements SortingStrategy {
 			System.out.println(e);
 			System.exit(0);
 		}
-		
-		//String bestBox = null;
-		//int distance = -1;
-		
-		/*
-		for(String id: storageTracker.keySet()) {
-			
-			//int maxFloor = getMaxFloor(storageTracker.get(id));
-			//int minFloor = getMinFloor(storageTracker.get(id));
-			//System.out.println("minFloor: "+minFloor+" maxFloor: "+minFloor+ " Delivery: "+deliveryFloor);
+		throw new MailOverflowException();
 
-			
-			if(deliveryFloor <= maxFloor && deliveryFloor >= minFloor) {
-				storageTracker.get(id).put(deliveryFloor, 1);
-				return id;
-			}
-			
-			int closestInBox = closestFloor(storageTracker.get(id),deliveryFloor);
-			
-			if(distance == -1 && bestBox == null) {
-				
-				//bestBox = getAvailableBox(storage,item);
-				closestInBox = closestFloor(storageTracker.get(bestBox),deliveryFloor);
-				distance = Math.abs(closestInBox-deliveryFloor);
-
-			} else
-				try {
-					if(distance > (closestInBox-deliveryFloor) && storage.retrieveBox(id).canHold(item)) {
-						distance = Math.abs(closestInBox-deliveryFloor);
-						bestBox = id;
-					}
-				} catch (UnknownIdentifierException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			
-		}
-		
-		return bestBox;
-		*/
-		return null;
 	}
 
 
@@ -143,58 +123,24 @@ public class SortingMethodOne implements SortingStrategy {
 		ID = iD; 
 	}
 	
-	private int getMinFloor(HashMap<Integer,Integer> box) {
-		
-		List<Integer> keyList = new ArrayList<Integer>(box.keySet());
-		Collections.sort(keyList);
-		
-		return keyList.get(0);
-		
-		
-	}
-	
-	private int getMaxFloor(HashMap<Integer,Integer> box) {
-		
-		List<Integer> keyList = new ArrayList<Integer>(box.keySet());
-		Collections.sort(keyList);
-		Collections.reverse(keyList);
-		
-		return keyList.get(0);
-		
-		
-	}
-	private int closestFloor(HashMap<Integer,Integer> box, int mailFloor) {
+	private int smallestDifference(HashMap<Integer,Integer> box) {
 		
 		int closestFloorDistance = -1;
-		int closestFloor = 0;
-		for(int floor: box.keySet()) {
+		
+		
+		for(int otherFloor: box.keySet()) {
 			
-			if(closestFloorDistance == -1 && closestFloor == 0 ) {
-				closestFloorDistance = Math.abs(mailFloor-floor);
-				closestFloor = floor;
+			if(closestFloorDistance == -1) {
+				closestFloorDistance = Math.abs(deliveryFloor-otherFloor);
 			}
-			else if(closestFloorDistance > Math.abs(mailFloor-floor)) {
-				closestFloorDistance = mailFloor-floor;
-				closestFloor = floor;
+			else if(closestFloorDistance < Math.abs(deliveryFloor-otherFloor)) {
+				closestFloorDistance = Math.abs(deliveryFloor-otherFloor);
 			}
 			
 		}
-		return closestFloor;
-	}
-	/*
-	private String getAvailableBox(MailStorage storage, MailItem item) throws MailOverflowException {
 		
-        StorageBox.Summary[] available = storage.retrieveSummaries();
-        for(StorageBox.Summary summary : available){
-            if(summary.remainingUnits >= item.size){
-                return summary.identifier;
-            }
-            
-        }
-        throw new MailOverflow
+		return closestFloorDistance;
 	}
-	*/
-	
 
 
 }

@@ -1,6 +1,11 @@
 package com.unimelb.swen30006.mailroom;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 import com.unimelb.swen30006.mailroom.exceptions.SourceExhaustedException;
 
@@ -15,55 +20,35 @@ public class DeliveryMethod implements DeliveryStrategy {
 	@Override
 	public int chooseNextFloor(int currentFloor, StorageBox box) throws SourceExhaustedException {
 		
-		int itemsAbove = 0;
-		int itemsBelow = 0;
-		int closestFloorAbove = 0;
-		int closestFloorBelow = 0;
-				
-		HashMap<Integer,Integer> currentBoxStats = selectionMethod.getCurrentBoxStats();
+
+		ArrayList<Integer> possibleDestinations = new ArrayList<Integer>();
+		ArrayList<MailItem> mailItems = new ArrayList<MailItem>();
 		
-		for(Integer floor: currentBoxStats.keySet()) {
+		try {
 			
+			while(!box.isEmpty()) {
 			
-			if(currentBoxStats.get(floor) > currentFloor){
+				MailItem item = box.popItem();
+				possibleDestinations.add(item.floor);
+				mailItems.add(item);
+			
+			}
+			for(MailItem item: mailItems) {
+				box.addItem(item);
+			}
+			Collections.sort(possibleDestinations);
+			
+		} catch (Exception e) {
+			System.out.println(e);
+		}
+
+		
+
+		return possibleDestinations.get(0);
+
+		
+
 	
-				itemsAbove += currentBoxStats.get(floor);
-				
-				if(closestFloorAbove == 0) {
-					closestFloorAbove = floor;
-					
-				}
-				else if(floor < closestFloorAbove) {
-					closestFloorAbove = floor;
-				}
-			}
-			else {
-				itemsBelow += currentBoxStats.get(floor);
-				
-				if(closestFloorBelow == 0) {
-					closestFloorBelow = floor;
-				}
-				else if(floor > closestFloorBelow) {
-					closestFloorBelow = floor;
-				}
-			}
-		}
-
-		if(itemsAbove > itemsBelow) {
-			currentBoxStats.remove(closestFloorAbove);
-
-
-			return closestFloorAbove;
-		}
-		else if(itemsAbove < itemsBelow) {
-			currentBoxStats.remove(closestFloorBelow);
-
-
-			return closestFloorBelow;
-		}
-		
-		return -1;
-		
 		
 	}
 	

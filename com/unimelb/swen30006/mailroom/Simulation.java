@@ -76,7 +76,7 @@ public class Simulation {
         //System.out.println(maxFloor);
         // Create the appropriate strategies
         SortingStrategy sortStrategy = new SortingMethodTwo();
-        SelectionStrategy selectionStrategy = new SelectionMethod(sortStrategy);
+        SelectionStrategy selectionStrategy = new SelectionMethod(sortStrategy,maxBoxes);
         DeliveryStrategy deliveryStrategy = new DeliveryMethod(selectionStrategy);
 
         //SortingStrategy sortStrategy = new SimpleSortingStrategy();
@@ -157,7 +157,7 @@ public class Simulation {
         for(int i=0; i<NUM_RUNS; i++){
 
         	sortingStrategy = new SortingMethodTwo();
-            selectionStrategy = new SelectionMethod(sortingStrategy);
+            selectionStrategy = new SelectionMethod(sortingStrategy,maxBoxes);
             deliveryStrategy = new DeliveryMethod(selectionStrategy);
 
             // Setup Mail Generator
@@ -182,6 +182,16 @@ public class Simulation {
             while(!finished){
                 // Update the sorter
                 sorter.step();
+                
+                /*
+                SortingMethodTwo s = (SortingMethodTwo) sortingStrategy;
+                System.out.println("Before: "+s.getStorageTracker());
+                System.out.println("Before: length: "+s.getStorageTracker().size());
+                System.out.println();
+                System.out.println();
+                System.out.println();
+                */
+
 
                 // Update all the delivery bots
                 boolean anyBotBlocking = false;
@@ -189,6 +199,13 @@ public class Simulation {
                     bots[b].step();
                     anyBotBlocking = !bots[b].canFinish() || anyBotBlocking;
                 }
+                /*
+                System.out.println("After: "+s.getStorageTracker());
+                System.out.println("After: length: "+s.getStorageTracker().size());
+                System.out.println();
+                System.out.println();
+                System.out.println();
+                */
 
                 // Check if we are finished
                 finished = sorter.canFinish() && !anyBotBlocking;

@@ -17,6 +17,7 @@ public class SortingMethodTwo implements SortingStrategy {
 	static private Comparator<StorageBox.Summary>  numDestComparator;
 	private HashMap<String, HashMap<Integer, Integer>> storageTracker;
 	private Integer ID;
+	public int maxItems;
 	
 	static {
 		numDestComparator = new Comparator<StorageBox.Summary>() {
@@ -32,11 +33,13 @@ public class SortingMethodTwo implements SortingStrategy {
 	public SortingMethodTwo() {
 		storageTracker = new HashMap<String, HashMap<Integer, Integer>>();
 		ID = 1;
+		maxItems = 1000;
 	}
 	
 	
 	@Override
 	public String assignStorage(MailItem item, MailStorage storage) throws MailOverflowException {
+		
 		
 		int deliveryFloor = item.floor;
 		
@@ -48,52 +51,29 @@ public class SortingMethodTwo implements SortingStrategy {
 			
 			String boxID = summary.identifier;
 			HashMap<Integer,Integer> summaryBox = storageTracker.get(boxID);
-			if(summary.remainingUnits >= item.size) {
+			try {
+				StorageBox box = storage.retrieveBox(boxID);
 				
-				if(summaryBox.containsKey(deliveryFloor)) {
-					summaryBox.put(deliveryFloor, summaryBox.get(deliveryFloor)+1);
+				if(box.canHold(item)) {
+					maxItems--;
+					if(summaryBox.containsKey(deliveryFloor)) {
+						summaryBox.put(deliveryFloor, summaryBox.get(deliveryFloor)+1);
+					}
+					else {
+						summaryBox.put(deliveryFloor, 1);
+					}
+					return boxID;
 				}
-				else {
-					summaryBox.put(deliveryFloor, 1);
-				}
-				return boxID;
+				
+			} catch (UnknownIdentifierException e) {
+				 System.out.println(e);
+	             System.out.println("FATAL: Sort Strategy failed. Abort");
+	             System.exit(0);
 			}
+
 		}
 		
-		/*
-		for(StorageBox.Summary summary: available) {
-			
-			HashMap<Integer,Integer> box = storageTracker.get(summary.identifier);
 
-			int minFloor = getMinFloor(box);
-			int maxFloor = getMaxFloor(box);
-			
-			if((deliveryFloor >= minFloor && deliveryFloor <= maxFloor)) {
-				
-				try {
-					StorageBox boxFromStorage = storage.retrieveBox(summary.identifier);
-					
-					if(boxFromStorage.canHold(item)) {
-						
-						if(box.containsKey(deliveryFloor)) {
-							box.put(deliveryFloor, box.get(deliveryFloor)+1);
-						}
-						else {
-							box.put(deliveryFloor, 1);
-						}
-						//System.out.println(storageTracker);
-
-						return summary.identifier;
-					}
-				} catch (UnknownIdentifierException e) {
-	                // Strategy has not correctly identified box
-	                System.out.println(e);
-	                System.out.println("FATAL: Sort Strategy failed. Abort");
-	                System.exit(0);
-				}
-			}
-		}
-		*/
 		//Let's try creating a new box for the item
 		
 		if(!storage.isFull()) {
@@ -102,6 +82,7 @@ public class SortingMethodTwo implements SortingStrategy {
 			
 			try {
 				storage.createBox(newBoxID);
+				
 			} catch (DuplicateIdentifierException e) {
 				System.out.println(e);
 				System.exit(0);
@@ -112,36 +93,20 @@ public class SortingMethodTwo implements SortingStrategy {
 			HashMap<Integer,Integer> newBox = new HashMap<Integer,Integer>();
 			newBox.put(deliveryFloor, 1);
 			storageTracker.put(newBoxID, newBox);
+			maxItems--;
 			return newBoxID;
 		}
 		
-		System.out.println(storageTracker);
-		System.out.println(item);
-		System.exit(0);
+		//System.out.println("All items: "+storageTracker.size());
+		//System.out.println(item);
+		//System.exit(0);
 		//Otherwise mailitem needs to wait for empty box
 		throw new MailOverflowException();
 		
 		
 	}
 	
-	private int getMinFloor(HashMap<Integer,Integer> box) {
 
-		List<Integer> keyList = new ArrayList<Integer>(box.keySet());
-		Collections.sort(keyList);
-		return keyList.get(0);
-		
-		
-	}
-	private int getMaxFloor(HashMap<Integer,Integer> box) {
-		
-		List<Integer> keyList = new ArrayList<Integer>(box.keySet());
-		Collections.sort(keyList);
-		Collections.reverse(keyList);
-		
-		return keyList.get(0);
-		
-		
-	}
 	public HashMap<String, HashMap<Integer, Integer>> getStorageTracker() {
 		return storageTracker;
 	}

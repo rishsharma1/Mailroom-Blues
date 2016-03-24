@@ -9,23 +9,44 @@ public class SelectionMethod implements SelectionStrategy {
 	
 
 	
-	public SelectionMethod(SortingStrategy sortStrategy) {
+	public SelectionMethod(SortingStrategy sortStrategy, int maxBoxes) {
 		this.sortMethodOne = (SortingMethodTwo) sortStrategy;
-
+		this.maxBoxes = maxBoxes;
+		deliverying = false;
+		currentBoxStats = new HashMap<Integer,Integer>();
 	}
 	
 	//current id of the box that is going to be delivered 
 	private String currentBoxID;
-	private SortingMethodTwo sortMethodOne;
+	public SortingMethodTwo sortMethodOne;
 	private HashMap<Integer,Integer> currentBoxStats;
+	private  static int maxBoxes;
+	private boolean deliverying;
+	
 	
 	@Override
 	public String selectNextDelivery(Summary[] summaries) throws NoBoxReadyException {
 		
-		
-		if(summaries.length != 0) {
+		if(sortMethodOne.maxItems < 1) {
 			
+			if(summaries.length == 0) {
+				deliverying = false;
+			}
+			else {
+				deliverying = true;
+			}
+		}
 
+		
+		if((summaries.length == maxBoxes || deliverying)) {
+			
+			if(summaries.length == 1) {
+				deliverying = false;
+			}
+			else {
+				deliverying = true;
+			}
+			
 			StorageBox.Summary maxBoxSummary = summaries[0];
 			for(StorageBox.Summary summary : summaries) {
 				
@@ -36,16 +57,22 @@ public class SelectionMethod implements SelectionStrategy {
 			}
 
 
-				this.currentBoxID = maxBoxSummary.identifier;
-				this.currentBoxStats = sortMethodOne.getStorageTracker().get(currentBoxID);
-				System.out.println(currentBoxStats);
+			this.currentBoxID = maxBoxSummary.identifier;
+			this.currentBoxStats = sortMethodOne.getStorageTracker().get(currentBoxID);
+			
 
-				sortMethodOne.getStorageTracker().remove(currentBoxID);
-				return maxBoxSummary.identifier;
+			sortMethodOne.getStorageTracker().remove(currentBoxID);
+			//System.out.println("Box Selected: "+maxBoxSummary.identifier + "....");
+			//System.out.println(maxBoxSummary);
+			//System.out.println(sortMethodOne.getStorageTracker().size());
+
+	
+			return maxBoxSummary.identifier;
 			
 	
 			
 		}
+//		System.out.println("Throwing the no box ready exception");
 		throw new NoBoxReadyException();
 		
 	}
@@ -57,6 +84,7 @@ public class SelectionMethod implements SelectionStrategy {
 	public String getCurrentBoxID() {
 		return currentBoxID;
 	}
+	
 	
 	
 

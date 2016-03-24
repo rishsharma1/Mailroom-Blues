@@ -118,6 +118,7 @@ public class DeliveryBot implements Stepable {
         try {
             int destinationFloor = deliveryStrategy.chooseNextFloor(this.currentFloor, this.currentDelivery);
             travelFloor(destinationFloor);
+
             deliverToFloor(destinationFloor, this.currentDelivery);
         } catch (SourceExhaustedException e){
             System.out.println(e);

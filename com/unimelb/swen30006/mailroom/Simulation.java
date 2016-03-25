@@ -4,6 +4,7 @@
  */
 package com.unimelb.swen30006.mailroom;
 
+import com.unimelb.swen30006.mailroom.exceptions.UnknownIdentifierException;
 import com.unimelb.swen30006.mailroom.samples.*;
 
 import java.util.ArrayList;
@@ -56,6 +57,12 @@ public class Simulation {
     private static final int MAIL_ROOM_LEVEL_SMALL = 10;
     private static final int NUM_BOTS_SMALL = 1;
     private static final String SMALL_BUILDING = "small_building";
+    
+    // Constants for arguments
+    private static final String RANDOM = "random";
+    private static final String DETAILED = "detailed";
+    private static final String FIRST_ARGUMENT_ERROR = "Plase enter a valid first argument "
+    		+ "(small_building, medium_building, large_building)";
 
 
     // The default number of simulations
@@ -66,31 +73,51 @@ public class Simulation {
     private static int maxUnits;
     private static int numBots;
     private static int mailRoomLevel;
+    private static SortingStrategy sortStrategy;
+    private static SelectionStrategy selectionStrategy;
+    private static DeliveryStrategy deliveryStrategy;
+    private static String simulationType;
+    
 
     public static void main(String args[]) {
-
-        String simulationType = args[0];
-        System.out.println(simulationType);
-
-        simulationScenario(simulationType);
-        //System.out.println(maxFloor);
-        // Create the appropriate strategies
-        SortingStrategy sortStrategy = new SortingMethodTwo(NUM_MAIL);
-        SelectionStrategy selectionStrategy = new SelectionMethod(null,sortStrategy,maxBoxes);
-        DeliveryStrategy deliveryStrategy = new DeliveryMethod();
-
-        //SortingStrategy sortStrategy = new SimpleSortingStrategy();
-        //SelectionStrategy selectionStrategy = new SimpleSelectionStrategy();
-        //DeliveryStrategy deliveryStrategy = new SimpleDeliveryStrategy();
-
+    	
         boolean pridictable;
     	boolean printDetailed;
+
+    	
+    	try {
+            simulationType = args[0];
+            simulationScenario(simulationType);
+
+
+    	} catch(ArrayIndexOutOfBoundsException e) {
+    		System.out.println(FIRST_ARGUMENT_ERROR);
+    		System.exit(0);
+    	}  catch(UnknownIdentifierException e) {
+        	System.out.println(e);
+            System.exit(0);
+
+        }
+        
+
+        if(simulationType.equals(SMALL_BUILDING)) {
+            sortStrategy = new SortingMethodTwo(NUM_MAIL);
+            selectionStrategy = new SelectionMethod(null,sortStrategy,maxBoxes);
+
+        }
+        else {
+        	sortStrategy = new SortingMethodOne(NUM_MAIL);
+            selectionStrategy = new SelectionMethod(sortStrategy,null,maxBoxes);
+        }
+        deliveryStrategy = new DeliveryMethod();
+
+     
 
 
         // Extract whether to print detailed runs or not
         // Extract whether to print random runs or not
         try {
-        	pridictable = !(args.length>0 && args[1].equals("random"));
+        	pridictable = !(args.length>0 && args[1].equals(RANDOM));
 
         }
         catch(ArrayIndexOutOfBoundsException e) {
@@ -99,11 +126,11 @@ public class Simulation {
         try {
 
         	if(pridictable) {
-                printDetailed = (args.length>0 && args[1].equals("detailed"));
+                printDetailed = (args.length>0 && args[1].equals(DETAILED));
 
         	}
         	else {
-        		printDetailed = (args.length>0 && args[2].equals("detailed"));
+        		printDetailed = (args.length>0 && args[2].equals(DETAILED));
 
         	}
 
@@ -155,10 +182,16 @@ public class Simulation {
 
         // Run the required number of simulations
         for(int i=0; i<NUM_RUNS; i++){
-
-        	sortingStrategy = new SortingMethodTwo(numMail);
-            selectionStrategy = new SelectionMethod(null,sortingStrategy,maxBoxes);
-            deliveryStrategy = new DeliveryMethod();
+        	
+        	
+        	if(simulationType.equals(SMALL_BUILDING)) {
+        		SortingMethodTwo sortMethod = (SortingMethodTwo) sortingStrategy;
+        		sortMethod.initializeState(numMail);
+        	}
+        	else {
+        		SortingMethodOne sortMethod = (SortingMethodOne) sortingStrategy;
+        		sortMethod.initializeState(numMail);
+        	}
 
             // Setup Mail Generator
             MailItem.MailPriority[] priorities = MailItem.MailPriority.values();
@@ -183,15 +216,7 @@ public class Simulation {
                 // Update the sorter
                 sorter.step();
                 
-                /*
-                SortingMethodTwo s = (SortingMethodTwo) sortingStrategy;
-                System.out.println("Before: "+s.getStorageTracker());
-                System.out.println("Before: length: "+s.getStorageTracker().size());
-                System.out.println();
-                System.out.println();
-                System.out.println();
-                */
-
+ 
 
                 // Update all the delivery bots
                 boolean anyBotBlocking = false;
@@ -199,13 +224,7 @@ public class Simulation {
                     bots[b].step();
                     anyBotBlocking = !bots[b].canFinish() || anyBotBlocking;
                 }
-                /*
-                System.out.println("After: "+s.getStorageTracker());
-                System.out.println("After: length: "+s.getStorageTracker().size());
-                System.out.println();
-                System.out.println();
-                System.out.println();
-                */
+
 
                 // Check if we are finished
                 finished = sorter.canFinish() && !anyBotBlocking;
@@ -255,36 +274,50 @@ public class Simulation {
 
     }
 
-    private static void simulationScenario(String simulationType) {
+    private static void simulationScenario(String simulationType) throws UnknownIdentifierException {
+
+    		
+    	switch(simulationType) {
+    	
+    	
+    			case LARGE_BUILDING: 
+	    			minFloor = MIN_FLOOR_LARGE;
+	    			maxFloor = MAX_FLOOR_LARGE;
+	    			maxBoxes = MAX_BOXES_LARGE;
+	    			maxUnits = MAX_MAIL_UNITS_LARGE;
+	    			numBots = NUM_BOTS_LARGE;
+	    			mailRoomLevel = MAIL_ROOM_LEVEL_LARGE;
+	    			break;
+    		
+
+    			case MEDIUM_BUILDING: 
+	    			minFloor = MIN_FLOOR_MEDIUM;
+	    			maxFloor = MAX_FLOOR_MEDIUM;
+	    			maxBoxes = MAX_BOXES_MEDIUM;
+	    			maxUnits = MAX_MAIL_UNITS_MEDIUM;
+	    			numBots = NUM_BOTS_MEDIUM;
+	    			mailRoomLevel = MAIL_ROOM_LEVEL_MEDIUM;
+	    			break;
+    		
+
+    			case SMALL_BUILDING:
+
+	    			minFloor = MIN_FLOOR_SMALL;
+	    			maxFloor = MAX_FLOOR_SMALL;
+	    			maxBoxes = MAX_BOXES_SMALL;
+	    			maxUnits = MAX_MAIL_UNITS_SMALL;
+	    			numBots = NUM_BOTS_SMALL;
+	    			mailRoomLevel = MAIL_ROOM_LEVEL_SMALL;
+	    			break;
+	    		
+    			default:
+    				throw new UnknownIdentifierException(simulationType); 
+    				
+
+	    			
+    	}
 
 
-    		if (simulationType.equals(LARGE_BUILDING)) {
-    			minFloor = MIN_FLOOR_LARGE;
-    			maxFloor = MAX_FLOOR_LARGE;
-    			maxBoxes = MAX_BOXES_LARGE;
-    			maxUnits = MAX_MAIL_UNITS_LARGE;
-    			numBots = NUM_BOTS_LARGE;
-    			mailRoomLevel = MAIL_ROOM_LEVEL_LARGE;
-    		}
-
-    		else if(simulationType.equals(MEDIUM_BUILDING)) {
-    			minFloor = MIN_FLOOR_MEDIUM;
-    			maxFloor = MAX_FLOOR_MEDIUM;
-    			maxBoxes = MAX_BOXES_MEDIUM;
-    			maxUnits = MAX_MAIL_UNITS_MEDIUM;
-    			numBots = NUM_BOTS_MEDIUM;
-    			mailRoomLevel = MAIL_ROOM_LEVEL_MEDIUM;
-    		}
-
-    		else if(simulationType.equals(SMALL_BUILDING)) {
-
-    			minFloor = MIN_FLOOR_SMALL;
-    			maxFloor = MAX_FLOOR_SMALL;
-    			maxBoxes = MAX_BOXES_SMALL;
-    			maxUnits = MAX_MAIL_UNITS_SMALL;
-    			numBots = NUM_BOTS_SMALL;
-    			mailRoomLevel = MAIL_ROOM_LEVEL_SMALL;
-    		}
 
 
     }

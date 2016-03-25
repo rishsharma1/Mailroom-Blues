@@ -10,14 +10,14 @@ public class StorageTracker {
 	private int deliveryFloor;
 	
 	public StorageTracker(int itemsRemaining) {
-		this.itemsRemaining = itemsRemaining;
-		initializeStats();
+		initializeState(itemsRemaining);
 		
 	}
 	
-	public void initializeStats() {
+	public void initializeState(int itemsRemaining) {
 		this.ID = 1;
 		storageTracker = new HashMap<String, HashMap<Integer,Integer>>();
+		this.itemsRemaining = itemsRemaining;
 		
 	}
 	

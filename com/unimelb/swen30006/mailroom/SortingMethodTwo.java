@@ -83,6 +83,10 @@ public class SortingMethodTwo extends StorageTracker implements SortingStrategy 
 		
 	}
 	
+	public void initializeState(int itemsRemaining) {
+		super.initializeState(itemsRemaining);
+	}
+	
 
 
 }

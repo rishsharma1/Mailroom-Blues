@@ -34,6 +34,7 @@ public class SelectionMethod implements SelectionStrategy {
 		if(getRemainingItems() < 1) {
 			
 			if(summaries.length == 0) {
+				
 				deliverying = false;
 			}
 			else {
@@ -98,7 +99,6 @@ public class SelectionMethod implements SelectionStrategy {
 			sortStrategy1.getStorageTracker().remove(currentBoxID);
 		}
 	}
-	
 
 
 

@@ -1,21 +1,14 @@
 package com.unimelb.swen30006.mailroom;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+
 
 import com.unimelb.swen30006.mailroom.exceptions.SourceExhaustedException;
 
 public class DeliveryMethod implements DeliveryStrategy {
 	
-	private SelectionMethod selectionMethod;
 	
-	public DeliveryMethod(SelectionStrategy selectionStrategy) {
-		this.selectionMethod = (SelectionMethod) selectionStrategy;
-	}
 
 	@Override
 	public int chooseNextFloor(int currentFloor, StorageBox box) throws SourceExhaustedException {

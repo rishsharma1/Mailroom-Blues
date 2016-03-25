@@ -75,9 +75,9 @@ public class Simulation {
         simulationScenario(simulationType);
         //System.out.println(maxFloor);
         // Create the appropriate strategies
-        SortingStrategy sortStrategy = new SortingMethodOne();
-        SelectionStrategy selectionStrategy = new SelectionMethod(sortStrategy,maxBoxes);
-        DeliveryStrategy deliveryStrategy = new DeliveryMethod(selectionStrategy);
+        SortingStrategy sortStrategy = new SortingMethodTwo(NUM_MAIL);
+        SelectionStrategy selectionStrategy = new SelectionMethod(null,sortStrategy,maxBoxes);
+        DeliveryStrategy deliveryStrategy = new DeliveryMethod();
 
         //SortingStrategy sortStrategy = new SimpleSortingStrategy();
         //SelectionStrategy selectionStrategy = new SimpleSelectionStrategy();
@@ -156,9 +156,9 @@ public class Simulation {
         // Run the required number of simulations
         for(int i=0; i<NUM_RUNS; i++){
 
-        	sortingStrategy = new SortingMethodOne();
-            selectionStrategy = new SelectionMethod(sortingStrategy,maxBoxes);
-            deliveryStrategy = new DeliveryMethod(selectionStrategy);
+        	sortingStrategy = new SortingMethodTwo(numMail);
+            selectionStrategy = new SelectionMethod(null,sortingStrategy,maxBoxes);
+            deliveryStrategy = new DeliveryMethod();
 
             // Setup Mail Generator
             MailItem.MailPriority[] priorities = MailItem.MailPriority.values();

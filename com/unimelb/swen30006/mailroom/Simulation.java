@@ -1,3 +1,7 @@
+/* Name: Rishabh Sharma
+ * Student Number: 694739
+ */
+
 /* SWEN30006 Software Modelling and Design
  * Project 1 - Mailroom Blues
  * Author: Mathew Blair <mathew.blair@unimelb.edu.au>
@@ -61,6 +65,8 @@ public class Simulation {
     // Constants for arguments
     private static final String RANDOM = "random";
     private static final String DETAILED = "detailed";
+    
+    // Message needed for when a valid argument is not added  concerning type of building
     private static final String FIRST_ARGUMENT_ERROR = "Plase enter a valid first argument "
     		+ "(small_building, medium_building, large_building)";
 
@@ -85,21 +91,24 @@ public class Simulation {
     	boolean printDetailed;
 
     	
+    	// check for the first argument
     	try {
             simulationType = args[0];
             simulationScenario(simulationType);
 
-
+        // if no first argument present 
     	} catch(ArrayIndexOutOfBoundsException e) {
     		System.out.println(FIRST_ARGUMENT_ERROR);
     		System.exit(0);
+    	// throw if not comparable to large_building, medium_building, small_building
     	}  catch(UnknownIdentifierException e) {
         	System.out.println(e);
             System.exit(0);
 
         }
         
-
+    	
+    	// select strategy according the type of the building
         if(simulationType.equals(SMALL_BUILDING)) {
             sortStrategy = new SortingMethodTwo(NUM_MAIL);
             selectionStrategy = new SelectionMethod(null,sortStrategy,maxBoxes);
@@ -124,7 +133,8 @@ public class Simulation {
         	pridictable = true;
         }
         try {
-
+        	
+        	// if no random argument is present, look for the detailed argument
         	if(pridictable) {
                 printDetailed = (args.length>0 && args[1].equals(DETAILED));
 
@@ -184,6 +194,8 @@ public class Simulation {
         for(int i=0; i<NUM_RUNS; i++){
         	
         	
+        	// initialize the storage tracker for the simulation repeat, based 
+        	// on the type of the building 
         	if(simulationType.equals(SMALL_BUILDING)) {
         		SortingMethodTwo sortMethod = (SortingMethodTwo) sortingStrategy;
         		sortMethod.initializeState(numMail);
@@ -273,7 +285,13 @@ public class Simulation {
         System.out.println("");
 
     }
-
+    
+    /**
+     *  selects variables constants based on the building type selected for the 
+     *  the simulation, otherwise throws the UnknownIdentfierException
+     * @param simulationType
+     * @throws UnknownIdentifierException
+     */
     private static void simulationScenario(String simulationType) throws UnknownIdentifierException {
 
     		
